@@ -156,7 +156,7 @@ if __name__ == "__main__":
     conn = psycopg2.connect(target_db)
 
     # Anonymize records
-    anonymize_records(conn, table, column, days, excluded_domain)
+    anonymize_records(conn, table, column, days=0, excluded_domain=" ")
 
     # Close database connection
     conn.close()
