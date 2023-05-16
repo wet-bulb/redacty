@@ -6,48 +6,92 @@
 [![Commit activity](https://img.shields.io/github/commit-activity/m/wet-bulb/redacty)](https://img.shields.io/github/commit-activity/m/wet-bulb/redacty)
 [![License](https://img.shields.io/github/license/wet-bulb/redacty)](https://img.shields.io/github/license/wet-bulb/redacty)
 
-This is a CLI tool that redacts emails from bodies of text in a PostgreSQL database.
+This is a CLI tool and Python API that redacts emails from bodies of text in a PostgreSQL database, with optional flags for an excluded domain and an older than x days filter.
 
 - **Github repository**: <https://github.com/wet-bulb/redacty/>
-- **Documentation** <https://wet-bulb.github.io/redacty/>
 
-## Getting started with your project
 
-First, create a repository on GitHub with the same name as this project, and then run the following commands:
+## Installation
 
-``` bash
-git init -b main
-git add .
-git commit -m "init commit"
-git remote add origin git@github.com:wet-bulb/redacty.git
-git push -u origin main
-```
-
-Finally, install the environment and the pre-commit hooks with 
+Install `redacty` with pip
 
 ```bash
-make install
+  pip install redacty
+```
+    
+## Usage/Examples
+### Command-Line Interface (CLI)
+
+``` bash
+redacty <database_url> <table> <column> [-a AGE] [-x EXCLUDE]
 ```
 
-You are now ready to start development on your project! The CI/CD
-pipeline will be triggered when you open a pull request, merge to main,
-or when you create a new release.
+- <database_url>: PostgreSQL database URL.
+- <table>: Name of the table that holds the column to redact.
+- <column>: Name of the column that holds the text to redact.
 
-To finalize the set-up for publishing to PyPi or Artifactory, see
-[here](https://fpgmaas.github.io/cookiecutter-poetry/features/publishing/#set-up-for-pypi).
-For activating the automatic documentation with MkDocs, see
-[here](https://fpgmaas.github.io/cookiecutter-poetry/features/mkdocs/#enabling-the-documentation-on-github).
-To enable the code coverage reports, see [here](https://fpgmaas.github.io/cookiecutter-poetry/features/codecov/).
+Optional arguments:
 
-## Releasing a new version
+- -a AGE, --age AGE: Minimum age of records to be anonymized in days. Default is 0 days old.
+- -x EXCLUDE, --exclude EXCLUDE: Email domain to exclude from anonymization.
 
-- Create an API Token on [Pypi](https://pypi.org/).
-- Add the API Token to your projects secrets with the name `PYPI_TOKEN` by visiting 
-[this page](https://github.com/wet-bulb/redacty/settings/secrets/actions/new).
-- Create a [new release](https://github.com/wet-bulb/redacty/releases/new) on Github. 
-Create a new tag in the form ``*.*.*``.
+### Programatic Use in Python
+Here's an example:
 
-For more details, see [here](https://fpgmaas.github.io/cookiecutter-poetry/features/cicd/#how-to-trigger-a-release).
+``` python
+from redacty import anonymize_records
+
+# Connect to the PostgreSQL database
+conn = psycopg2.connect(database_url)
+
+# Anonymize email addresses in the specified table and column
+anonymize_records(conn, table, column)
+
+# Close the database connection
+conn.close()
+```
+## Run Locally
+
+Install `poetry`
+
+```bash
+  curl -sSL https://install.python-poetry.org | python3 -
+```
+
+Clone the project
+
+```bash
+  git clone https://link-to-project
+```
+
+Go to the project directory
+
+```bash
+  cd my-project
+```
+
+Install and activate the `poetry` environment
+
+```bash
+  make install
+  poetry shell
+```
+
+View available make commends
+
+```bash
+  make help
+```
+## Development Features
+
+- [Poetry](https://python-poetry.org/) for dependency management
+- CI/CD with [GitHub Actions](https://github.com/features/actions)
+- Pre-commit hooks with [pre-commit](https://pre-commit.com/)
+- Code quality with [black](https://pypi.org/project/black/), [ruff](https://github.com/charliermarsh/ruff), [mypy](https://mypy.readthedocs.io/en/stable/), and [deptry](https://github.com/fpgmaas/deptry/)
+- Publishing to [Pypi](https://pypi.org) or [Artifactory](https://jfrog.com/artifactory) by creating a new release on GitHub
+- Testing and coverage with [pytest](https://docs.pytest.org/en/7.1.x/) and [codecov](https://about.codecov.io/)
+- Compatibility testing for multiple versions of Python with [Tox](https://tox.wiki/en/latest/)
+
 
 ---
 
