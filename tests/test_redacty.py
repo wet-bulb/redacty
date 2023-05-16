@@ -12,7 +12,8 @@ from redacty.redacty import anonymize_email, anonymize_records, find, replace_al
 def db_conn():
     # Set up temporary test database
     db_name = "test_db"
-    conn = psycopg2.connect(user="postgres", host="localhost", port="5432")
+    pw = "postgres"
+    conn = psycopg2.connect(user="postgres", password=pw, host="localhost", port="5432")
     conn.autocommit = True
     cursor = conn.cursor()
     cursor.execute(sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(db_name)))
@@ -23,7 +24,7 @@ def db_conn():
     conn.close()
 
     # Set up connection to test database
-    conn = psycopg2.connect(user="postgres", host="localhost", port="5432", dbname=db_name)
+    conn = psycopg2.connect(user="postgres", password=pw, host="localhost", port="5432", dbname=db_name)
     cursor = conn.cursor()
 
     # Set up redacti table
@@ -41,7 +42,7 @@ def db_conn():
     conn.close()
 
     # Drop test database
-    conn = psycopg2.connect(user="postgres", host="localhost", port="5432")
+    conn = psycopg2.connect(user="postgres", password=pw, host="localhost", port="5432")
     conn.autocommit = True
     cursor = conn.cursor()
     cursor.execute(sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(db_name)))

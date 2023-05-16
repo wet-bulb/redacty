@@ -45,15 +45,6 @@ jobs:
         python-version: ['3.8', '3.9', '3.10', '3.11']
       fail-fast: false
     steps:
-      - name: Install dockerize
-        run: |
-          wget https://github.com/jwilder/dockerize/releases/download/v0.6.1/dockerize-linux-amd64-v0.6.1.tar.gz
-          tar -C /usr/local/bin -xzvf dockerize-linux-amd64-v0.6.1.tar.gz
-          rm dockerize-linux-amd64-v0.6.1.tar.gz
-          
-      - name: Wait for PostgreSQL to start
-        run: dockerize -wait tcp://localhost:5432 -timeout 1m
-
       - name: Check out
         uses: actions/checkout@v3
 
@@ -78,6 +69,8 @@ jobs:
 
       - name: Test with tox
         run: tox
+        env:
+          POSTGRES_PASSWORD: postgres
 
       - name: Upload coverage reports to Codecov with GitHub Action on Python 3.11
         uses: codecov/codecov-action@v3
