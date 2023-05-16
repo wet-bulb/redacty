@@ -1,11 +1,12 @@
 import argparse
 import re
 from datetime import datetime, timedelta
+from typing import Optional
 
 import psycopg2
 
 
-def anonymize_email(email: str, excluded_domain: str) -> str | None:
+def anonymize_email(email: str, excluded_domain: str) -> Optional[str]:
     """Anonymizes email address by replacing characters before '@' with '*'.
 
     Args:
