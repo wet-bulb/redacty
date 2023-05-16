@@ -1,10 +1,11 @@
 import argparse
-from datetime import datetime, timedelta
-import psycopg2
 import re
+from datetime import datetime, timedelta
+
+import psycopg2
 
 
-def anonymize_email(email, excluded_domain):
+def anonymize_email(email: str, excluded_domain: str) -> str | None:
     """Anonymizes email address by replacing characters before '@' with '*'.
 
     Args:
@@ -14,14 +15,31 @@ def anonymize_email(email, excluded_domain):
     Returns:
     str: Anonymized email address.
     """
-    email_regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+    email_regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
     if re.match(email_regex, email) and not email.endswith(excluded_domain):
-        return re.sub(r'[a-zA-Z0-9._%+-]+', '*', email)
+        return re.sub(r"[a-zA-Z0-9._%+-]+", "*", email)
     else:
         return None
 
 
-def anonymize_records(conn, table, column, days, excluded_domain):
+def find(body: str) -> list:
+    email_regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
+    matches = re.findall(email_regex, body)
+    return matches
+
+
+def replace_all(matches: list, excluded_domain: str, body: str) -> str:
+    new_body = body
+    for match in matches:
+        anonymized_email = anonymize_email(match, excluded_domain)
+        if anonymized_email:
+            new_body = new_body.replace(match, anonymized_email)
+    return new_body
+
+
+def anonymize_records(
+    conn: psycopg2.extensions.connection, table: str, column: str, days: int, excluded_domain: str
+) -> None:
     """Anonymizes email addresses in database records that are older than the specified number of days.
 
     Args:
@@ -35,13 +53,17 @@ def anonymize_records(conn, table, column, days, excluded_domain):
     None
     """
     try:
-        if days <= 0:
+        if days < 0:
             raise ValueError("Number of days must be greater than zero.")
         cursor = conn.cursor()
         today = datetime.now().date()
         threshold = today - timedelta(days=days)
-        query = "SELECT id, created_at, {column} FROM {table} WHERE DATE(created_at) <= %s AND {column} IS NOT NULL AND {column} ~* '.*[a-z0-9._+-]+@(?!{excluded_domain})[a-z0-9.-]+.[a-z]{{2,}}.*'".format(excluded_domain=excluded_domain, column=column, table=table)
-
+        query = (
+            "SELECT id, created_at, {column} FROM {table} WHERE DATE(created_at) <= %s AND {column} IS NOT NULL AND"
+            " {column} ~* '.*[a-z0-9._+-]+@(?!{excluded_domain})[a-z0-9.-]+.[a-z]{{2,}}.*'".format(
+                excluded_domain=excluded_domain, column=column, table=table
+            )
+        )
 
         cursor.execute(query, (threshold,))
         records = cursor.fetchall()
@@ -53,22 +75,23 @@ def anonymize_records(conn, table, column, days, excluded_domain):
             body = record[2]
 
             # Anonymize email addresses
-        
-            email_regex = r'\b[A-Za-z0-9._%+-]+@(?!{})[A-Za-z0-9.-]+\.[A-Z|a-z]{{2,}}\b'.format(excluded_domain)
-            matches = re.findall(email_regex, body)
-            for match in matches:
-                anonymized_email = anonymize_email(match, excluded_domain)
-                if anonymized_email:
-                    body = body.replace(match, anonymized_email)
+            matches = find(body)
+            body = replace_all(matches, excluded_domain, body)
 
             # Update database record
             if body != record[2]:
-                query = f"UPDATE {table} SET {column} = '{body}' WHERE id = {record_id}"
-                cursor.execute(query)
+                query = f"UPDATE {table} SET {column} = %s WHERE id = %s"
+                cursor.execute(
+                    query,
+                    (
+                        body,
+                        record_id,
+                    ),
+                )
 
         if total_records > 0:
             confirm = input(f"{total_records} records will be anonymized. Proceed? (y/N) ")
-            if confirm.lower() == 'y':
+            if confirm.lower() == "y":
                 conn.commit()
                 print(f"{total_records} records anonymized.")
             else:
@@ -87,27 +110,34 @@ def anonymize_records(conn, table, column, days, excluded_domain):
         return None
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Anonymize email addresses in a PostgreSQL database.")
-    excluded_domain = " "
-    days = 0
 
     parser.add_argument("url", metavar="DATABASE_URL", help="PostgreSQL database URL")
-    parser.add_argument("-a", "--age", default=0, type=int, help="Minimum age of records to be anonymized in days. Default is 0 days old.")
-    parser.add_argument("-x", "--exclude", default=" ", help="Email domain to exclude from anonymization.")
+    parser.add_argument("table", metavar="TABLE", help="PostgreSQL database table")
+    parser.add_argument("column", metavar="COLUMN", help="PostgreSQL database column")
 
+    parser.add_argument(
+        "-a",
+        "--age",
+        default=0,
+        type=int,
+        help="Minimum age of records to be anonymized in days. Default is 0 days old.",
+    )
+    parser.add_argument("-x", "--exclude", default=" ", help="Email domain to exclude from anonymization.")
 
     args = parser.parse_args()
 
     target_db = args.url
+    table = args.table
+    column = args.column
     days = args.age
     excluded_domain = args.exclude
 
     conn = psycopg2.connect(target_db)
 
     # Anonymize records
-    anonymize_records(conn, days, excluded_domain)
+    anonymize_records(conn, table, column, days, excluded_domain)
 
     # Close database connection
     conn.close()
