@@ -44,8 +44,8 @@ from redacty import anonymize_records
 # Connect to the PostgreSQL database
 conn = psycopg2.connect(database_url)
 
-# Anonymize email addresses in the specified table and column
-anonymize_records(conn, table, column)
+# Anonymize email addresses in the specified table and column, set minimum age, and no excluded domains
+anonymize_records(conn, table, column, 30, " ")
 
 # Close the database connection
 conn.close()
