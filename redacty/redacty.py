@@ -23,12 +23,30 @@ def anonymize_email(email: str, excluded_domain: str) -> str | None:
 
 
 def find(body: str) -> list:
+    """Finds email addresses in a body of text.
+
+    Args:
+    body (str): Body of text to search.
+
+    Returns:
+    list: List of matches
+    """
     email_regex = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
     matches = re.findall(email_regex, body)
     return matches
 
 
 def replace_all(matches: list, excluded_domain: str, body: str) -> str:
+    """Replaces emails with *@* in a body of text unless the domain is excluded.
+
+    Args:
+    matches (list): List of emails to replace.
+    excluded_domain (str): Email domain to exclude from redaction.
+    body (str): Body of text with emails to redact.
+
+    Returns:
+    str: Body with redacted emails.
+    """
     new_body = body
     for match in matches:
         anonymized_email = anonymize_email(match, excluded_domain)
