@@ -129,7 +129,7 @@ def anonymize_records(
         return None
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(description="Anonymize email addresses in a PostgreSQL database.")
 
     parser.add_argument("url", metavar="DATABASE_URL", help="PostgreSQL database URL")
@@ -160,3 +160,7 @@ if __name__ == "__main__":
 
     # Close database connection
     conn.close()
+
+
+if __name__ == "__main__":
+    main()
