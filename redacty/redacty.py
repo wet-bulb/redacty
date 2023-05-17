@@ -129,7 +129,7 @@ def anonymize_records(
         return None
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(description="Anonymize email addresses in a PostgreSQL database.")
 
     parser.add_argument("url", metavar="DATABASE_URL", help="PostgreSQL database URL")
