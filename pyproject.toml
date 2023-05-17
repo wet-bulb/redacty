@@ -24,7 +24,7 @@ tox = "^3.25.1"
 types-psycopg2 = "^2.9.21.10"
 
 [tool.poetry.scripts]
-redacty = "redacty:main"
+redacty = "redacty.__main__:main"
 
 
 [build-system]
