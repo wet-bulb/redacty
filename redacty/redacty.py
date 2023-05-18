@@ -56,7 +56,7 @@ def replace_all(matches: list, excluded_domain: str, body: str) -> str:
 
 
 def anonymize_records(
-    conn: psycopg2.extensions.connection, table: str, column: str, days: int, excluded_domain: str
+    conn: psycopg2.extensions.connection, table: str, column: str, days: int, excluded_domain: str, skip_confirm: bool
 ) -> None:
     """Anonymizes email addresses in database records that are older than the specified number of days.
 
@@ -108,8 +108,9 @@ def anonymize_records(
                 )
 
         if total_records > 0:
-            confirm = input(f"{total_records} records will be anonymized. Proceed? (y/N) ")
-            if confirm.lower() == "y":
+            if not skip_confirm:
+                confirm = input(f"{total_records} records will be anonymized. Proceed? (y/N) ")
+            if skip_confirm or confirm.lower() == "y":
                 conn.commit()
                 print(f"{total_records} records anonymized.")
             else:

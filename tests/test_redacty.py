@@ -118,7 +118,7 @@ def test_anonymize_records(db_conn, mock_input_y):
     db_conn.commit()
     cursor.close()
 
-    anonymize_records(db_conn, "redacti", "body", 30, "example.com")
+    anonymize_records(db_conn, "redacti", "body", 30, "example.com", skip_confirm=False)
     db_conn.commit()
 
     cursor = db_conn.cursor()
