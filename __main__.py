@@ -2,7 +2,7 @@ import argparse
 
 import psycopg2
 
-from redacty.redacty import anonymize_records
+from redacty import anonymize_records
 
 parser = argparse.ArgumentParser(description="Anonymize email addresses in a PostgreSQL database.")
 
